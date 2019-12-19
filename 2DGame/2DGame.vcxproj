@@ -152,6 +152,9 @@
   <ItemGroup>
     <ClCompile Include="2DGame.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="2DGame.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,18 +1,7 @@
 // 2DGame.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <iostream>
-#include <SSTREAM>
-#include <SDL.h>
-#include <stdlib.h>     /* srand, rand */
-#include <time.h> 
-
-using namespace std;
-
-void drawShape(SDL_Renderer* render);
-bool hitTest(SDL_Renderer* render, int x, int y, int point1x, int point1y, int point2x, int point2y);
-void moveObject(SDL_Renderer* render,float &objectx, float &objecty, float &dx, float &dy);
-void makernd();
+#include "2DGame.h"
 
 float rndx, rndy;
 int counta, countb, countc, countd;
@@ -26,15 +15,30 @@ int main(int argc, char* args[])
 	int mouseX, mouseY;
 	float objectx, objecty;
 	float dx, dy, dist;
+	Point2D* p2dp = new Point2D(300, 300);
+
+	Circle* cp = new Circle(p2dp, 0, 0, 0, 255, 10);
+
 	hits = 0;
 
 	objectx = 300;
 	objecty = 300;
-	dx = 1.0;
-	dy = 1.0;
 
-	rndx = 1.0;
-	rndy = 0.7;
+	srand(time(NULL));
+
+	dx = rand() % 2;
+	if (dx == 1)
+		dx = -1;
+	else
+		dx = 1;
+	
+	dy = rand() % 2;
+	if (dy == 1)
+		dy = -1;
+	else
+		dy = 1;
+
+	makernd();
 
 	counta = 0;
 	countb = 0;
@@ -57,6 +61,9 @@ int main(int argc, char* args[])
 
 	SDL_RenderPresent(renderer);
 
+	cout << "Hit the circle 20 times with your mouse as quick as you can. Good luck!" << endl;
+
+	auto start = chrono::high_resolution_clock::now();
 
 	while (!quit)
 	{
@@ -67,7 +74,8 @@ int main(int argc, char* args[])
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
 		drawShape(renderer);
-		SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+		cp->render(renderer, objectx, objecty);
+		//SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 		SDL_RenderPresent(renderer);
 		
 		SDL_PollEvent(&event);
@@ -86,6 +94,8 @@ int main(int argc, char* args[])
 			{
 				hits++;
 				cout << "Hits :" << hits << endl;
+				if (hits >= 20)
+					quit = true;
 			}
 			break;
 		case SDL_MOUSEMOTION:
@@ -114,11 +124,20 @@ int main(int argc, char* args[])
 		
 	}
 
+	auto finish = chrono::high_resolution_clock::now();
+
+	chrono::duration<double> elapsed = finish - start;
+	if (hits == 20)
+	{
+		cout << "You finished 20 hits in : " << elapsed.count() << " sec" << endl;;
+		SDL_Delay(3000);
+	}
+
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
-	//SDL_Delay(3000);
+	
 
 	return 0;
 }
@@ -255,4 +274,131 @@ void drawShape(SDL_Renderer *render)
 	SDL_RenderDrawLine(render, 100, 100, 500, 100);
 	SDL_RenderDrawLine(render, 100, 500, 500, 500);
 	SDL_RenderDrawLine(render, 500, 100, 500, 500);
+}
+
+Shape::Shape()
+{
+
+}
+
+Shape::Shape(Point2D* position, char red, char green, char blue, char alpha) :
+	position(position), red(red), green(green), blue(blue), alpha(alpha)
+{
+
+}
+
+Circle::Circle()
+{
+
+}
+Circle::Circle(Point2D* position, char red, char green, char blue, char alpha, int radius) :
+	Shape(position, red, green, blue, alpha), radius(radius)
+{
+
+}
+
+void Circle::render(SDL_Renderer* render, int x, int y)
+{
+	float theta = 0.0;
+	int circlecenterX = x;
+	int circlecenterY = y;
+	float step = 2.0 * M_PI / 32;
+	int xpos, ypos, yposold, xposold;
+	int radius = 10;
+
+	//cout << "Position : " << position->toString() << endl;
+	//cout << "Radius : " << radius << endl;
+
+	xpos = circlecenterX + radius * cos(theta);
+	ypos = circlecenterY + radius * sin(theta);
+
+	yposold = ypos;
+	xposold = xpos;
+
+	theta += step;
+
+	while (theta <= (2.0 * M_PI + step))
+	{
+		xpos = circlecenterX + radius * cos(theta);
+		ypos = circlecenterY + radius * sin(theta);
+
+		SDL_RenderDrawLine(render, xpos, ypos, xposold, yposold);
+
+		yposold = ypos;
+		xposold = xpos;
+
+		theta += step;
+	}
+}
+
+Point2D::Point2D(int x, int y) : x(x), y(y)
+{
+
+}
+
+Point2D::Point2D()
+{
+	x = 0;
+	y = 0;
+}
+
+float Point2D::getX()
+{
+	return x;
+}
+
+float Point2D::getY()
+{
+	return y;
+}
+
+void Point2D::setX(float x)
+{
+	x = x;
+}
+
+void Point2D::setY(float y)
+{
+	y = y;
+}
+
+Point2D::Point2D(const Point2D& p2d) // copy constructor
+{
+	x = p2d.x;
+	y = p2d.y;
+}
+float Point2D::Distance(Point2D p2d)
+{
+	return (sqrt(pow(p2d.x, 2) + pow(p2d.y, 2)));
+}
+string Point2D::toString()
+{
+	string ret;
+
+	ret = "[" + to_string(x) + "," + to_string(y) + "]";
+
+	return ret;
+}
+
+Point2D Point2D::operator+(const Point2D& p2d)
+{
+	Point2D temp;
+
+	temp.x = x + p2d.x;
+	temp.y = y + p2d.y;
+
+	return temp;
+}
+bool Point2D::operator== (const Point2D& p2d)
+{
+	if (x == p2d.x && y == p2d.y)
+		return true;
+	else
+		return false;
+}
+Point2D& Point2D::operator=(const Point2D& p2d)
+{
+	x = p2d.x;
+	y = p2d.y;
+	return *this;
 }
