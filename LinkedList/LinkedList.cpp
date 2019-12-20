@@ -27,6 +27,10 @@ int main()
 
     dll.display_forward();
 
+    dll.remove(2);
+
+    dll.display_forward();
+
 }
 
 DoublyLinkedList::~DoublyLinkedList()
@@ -126,6 +130,42 @@ bool DoublyLinkedList::add(Node* data, int pos)
     return true;
 }
 
+bool DoublyLinkedList::remove(int pos)
+{
+    Node* current;
+    int currentindex;
+
+    if (pos > numberofnodes)
+        return false;
+
+    currentindex = 1;
+    current = head->next;
+
+    while (currentindex != pos)
+    {
+        current = current->next;
+        currentindex++;
+    }
+
+    current->prev->next = current->next;
+    current->next->prev = current->prev;
+
+    delete current;
+
+    return true;
+}
+
+bool DoublyLinkedList::replace(Node* oldnode, Node* newnode)
+{
+    newnode->next = oldnode->next;
+    newnode->prev = oldnode->prev;
+    oldnode->prev->next = newnode;
+    oldnode->next->prev = newnode;
+
+    delete oldnode;
+    return true;
+}
+
 void DoublyLinkedList::display_forward()
 {
     Node* current;
@@ -137,6 +177,19 @@ void DoublyLinkedList::display_forward()
         current = current->next;
      }
  }
+
+void DoublyLinkedList::display_backward()
+{
+    Node* current;
+
+    current = tail->prev;
+
+    while (current != head)
+    {
+        cout << "Data for node nr: " << current->nodeNumber << " is: " << current->data << endl;
+        current = current->prev;
+    }
+}
 
 Node::Node()
 {

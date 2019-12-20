@@ -14,13 +14,16 @@ private:
 public:
 	DoublyLinkedList();
 	~DoublyLinkedList();
+	bool remove(int pos);
 	bool add(Node* data, int pos);
+	bool replace(Node* oldnode, Node* newnode);
 	bool addtail(Node* data);
 	//bool remove(int pos);
 	//bool replace(Node* oldnode, Node* newnode);
 	//int search(Node* data);
 	//Node* nodeAt(int pos);
 	void display_forward();
+	void display_backward();
 	//void display_backward();
 	//int size();
 };
