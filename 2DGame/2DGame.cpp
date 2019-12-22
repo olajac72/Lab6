@@ -9,6 +9,8 @@ int hits;
 
 int main(int argc, char* args[])
 {
+	int boardpos = 300;
+	int timedivider = 0;
 	bool quit = false;
 	SDL_Event event;
 	stringstream ss;
@@ -18,6 +20,8 @@ int main(int argc, char* args[])
 	Point2D* p2dp = new Point2D(300, 300);
 
 	Circle* cp = new Circle(p2dp, 0, 0, 0, 255, 10);
+	vector<Obstacle*> obstacleVector;
+
 
 	hits = 0;
 
@@ -57,7 +61,11 @@ int main(int argc, char* args[])
 
 	SDL_RenderClear(renderer);
 
-	drawShape(renderer);
+	
+
+	initboard(renderer, obstacleVector);
+
+	drawShape(renderer, obstacleVector, boardpos);
 
 	SDL_RenderPresent(renderer);
 
@@ -67,13 +75,22 @@ int main(int argc, char* args[])
 
 	while (!quit)
 	{
-		SDL_Delay(20);
+		SDL_Delay(2);
 		
-		moveObject(renderer, objectx, objecty, dx, dy);
+		timedivider++;
+
+		if (timedivider >= 10)
+		{
+			moveObject(renderer, objectx, objecty, dx, dy, obstacleVector, boardpos);
+			timedivider = 0;
+		}
 		SDL_Rect dstrect = { objectx, objecty, 32, 32 };
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderClear(renderer);
-		drawShape(renderer);
+		drawShape(renderer, obstacleVector, boardpos);
+
+
+
 		cp->render(renderer, objectx, objecty);
 		//SDL_RenderCopy(renderer, texture, NULL, &dstrect);
 		SDL_RenderPresent(renderer);
@@ -118,6 +135,14 @@ int main(int argc, char* args[])
 			case SDLK_q:
 				quit = true;
 				break;
+			case SDLK_LEFT:
+				if (boardpos >= 150)
+					boardpos--;
+				break;
+			case SDLK_RIGHT:
+				if (boardpos <= 450)
+					boardpos++;
+				break;
 			}
 		}
 
@@ -142,7 +167,28 @@ int main(int argc, char* args[])
 	return 0;
 }
 
-void moveObject(SDL_Renderer* render, float& objectx, float& objecty, float &dx, float &dy)
+
+
+
+void initboard(SDL_Renderer* render, vector<Obstacle*> &obstacle)
+{
+	Obstacle* ob;
+	obstacle.clear();
+
+	ob = new Obstacle(render, 150, 150, 200, 150);
+	obstacle.push_back(ob);
+
+	ob = new Obstacle(render, 400, 150, 450, 150);
+	obstacle.push_back(ob);
+
+	ob = new Obstacle(render, 150, 300, 200, 300);
+	obstacle.push_back(ob);
+
+	ob = new Obstacle(render, 400, 300, 450, 300);
+	obstacle.push_back(ob);
+}
+
+void moveObject(SDL_Renderer* render, float& objectx, float& objecty, float &dx, float &dy, vector<Obstacle*> obstacle, int boardx)
 {
 	
 
@@ -154,6 +200,24 @@ void moveObject(SDL_Renderer* render, float& objectx, float& objecty, float &dx,
 	countd++;
 	//objectx += dx;
 	//objecty += dy;
+
+	for (vector<Obstacle*>::iterator it = obstacle.begin(); it != obstacle.end(); ++it)
+	{
+		if ((*it)->hit == false)
+		{
+			if (hitTest(render, objectx, objecty, (*it)->beginx, (*it)->beginy, (*it)->endx, (*it)->endy) == true)
+			{
+				dy *= -1;
+				(*it)->hit = true;
+			}
+		}
+	}
+
+	if (hitTest(render, objectx, objecty, boardx - 50, 450, boardx + 50, 450) == true)
+	{
+		dy *= -1;
+	}
+
 
 	if (hitTest(render, objectx, objecty, 100, 100, 100, 500) == true)
 	{
@@ -267,13 +331,40 @@ bool hitTest(SDL_Renderer *render, int x, int y, int point1x, int point1y, int p
 
 }
 
-void drawShape(SDL_Renderer *render)
+void drawShape(SDL_Renderer *render, vector<Obstacle*> obstacle, int boardx)
 {
-	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+ 	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 	SDL_RenderDrawLine(render, 100, 100, 100, 500);
 	SDL_RenderDrawLine(render, 100, 100, 500, 100);
 	SDL_RenderDrawLine(render, 100, 500, 500, 500);
 	SDL_RenderDrawLine(render, 500, 100, 500, 500);
+
+	for (vector<Obstacle*>::iterator it = obstacle.begin(); it != obstacle.end(); ++it)
+	{
+		(*it)->draw();
+	}
+
+	SDL_RenderDrawLine(render, boardx - 50, 450, boardx + 50, 450);
+
+}
+
+Obstacle::Obstacle(SDL_Renderer* rend, int bx, int by, int ex, int ey)
+{
+	render = rend;
+	beginx = bx;
+	beginy = by;
+	endx = ex;
+	endy = ey;
+	hit = false;
+}
+
+void Obstacle::draw()
+{
+	if (hit == false)
+	{
+		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+		SDL_RenderDrawLine(render, beginx, beginy, endx, endy);
+	}
 }
 
 Shape::Shape()

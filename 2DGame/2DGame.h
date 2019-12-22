@@ -11,12 +11,25 @@
 
 using namespace std;
 
-void drawShape(SDL_Renderer* render);
+class Obstacle;
+
+void drawShape(SDL_Renderer* render, vector<Obstacle*> obstacle, int boardx);
 bool hitTest(SDL_Renderer* render, int x, int y, int point1x, int point1y, int point2x, int point2y);
-void moveObject(SDL_Renderer* render, float& objectx, float& objecty, float& dx, float& dy);
+void moveObject(SDL_Renderer* render, float& objectx, float& objecty, float& dx, float& dy, vector<Obstacle*> obstacle, int boardx);
 void makernd();
+void initboard(SDL_Renderer* render, vector<Obstacle*> &obstacle);
 
 class Point2D;
+
+class Obstacle
+{
+public:
+	int beginx, beginy, endx, endy;
+	bool hit;
+	void draw();
+	SDL_Renderer* render;
+	Obstacle(SDL_Renderer * rend, int bx, int by, int ex, int ey);
+};
 
 class Shape
 {
